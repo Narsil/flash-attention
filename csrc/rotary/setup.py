@@ -5,7 +5,12 @@ import os
 from packaging.version import parse, Version
 
 import torch
-from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension, CUDA_HOME
+from torch.utils.cpp_extension import (
+    BuildExtension,
+    CppExtension,
+    CUDAExtension,
+    CUDA_HOME,
+)
 from setuptools import setup, find_packages
 import subprocess
 
@@ -14,7 +19,9 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_cuda_bare_metal_version(cuda_dir):
-    raw_output = subprocess.check_output([cuda_dir + "/bin/nvcc", "-V"], universal_newlines=True)
+    raw_output = subprocess.check_output(
+        [cuda_dir + "/bin/nvcc", "-V"], universal_newlines=True
+    )
     output = raw_output.split()
     release_idx = output.index("release") + 1
     bare_metal_version = parse(output[release_idx].split(",")[0])
@@ -29,7 +36,7 @@ def check_cuda_torch_binary_vs_bare_metal(cuda_dir):
     print("\nCompiling cuda extensions with")
     print(raw_output + "from " + cuda_dir + "/bin\n")
 
-    if (bare_metal_version != torch_binary_version):
+    if bare_metal_version != torch_binary_version:
         raise RuntimeError(
             "Cuda extensions are being compiled with a version of Cuda that does "
             "not match the version used to compile Pytorch binaries.  "
@@ -105,15 +112,17 @@ if bare_metal_version >= Version("11.8"):
 
 ext_modules.append(
     CUDAExtension(
-        'rotary_emb', [
-            'rotary.cpp',
-            'rotary_cuda.cu',
+        "rotary_emb",
+        [
+            "rotary.cpp",
+            "rotary_cuda.cu",
         ],
-        extra_compile_args={'cxx': ['-g', '-march=native', '-funroll-loops'],
-                            'nvcc': append_nvcc_threads([
-                                '-O3', '--use_fast_math', '--expt-extended-lambda'
-                            ] + cc_flag)
-                           }
+        extra_compile_args={
+            "cxx": ["-g", "-funroll-loops"],
+            "nvcc": append_nvcc_threads(
+                ["-O3", "--use_fast_math", "--expt-extended-lambda"] + cc_flag
+            ),
+        },
     )
 )
 
